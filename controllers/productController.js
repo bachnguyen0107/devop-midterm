@@ -7,7 +7,8 @@ function meta() {
 
 async function list(req, res, next) {
   try {
-    const items = await dataSource.getAll();
+    const search = (req.query.search || '').trim();
+    const items = await dataSource.getAll({ name: search || undefined });
     res.json({ data: items, ...meta() });
   } catch (err) { next(err); }
 }

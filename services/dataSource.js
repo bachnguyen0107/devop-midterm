@@ -115,12 +115,22 @@ function toDTO(doc) {
   return { id: doc._id.toString(), name: doc.name, price: doc.price, color: doc.color, description: doc.description || null, imageUrl: doc.imageUrl || '' };
 }
 
-async function getAll() {
+async function getAll(filter = {}) {
   if (isMongo) {
-    const docs = await ProductModel.find().lean();
+    const query = {};
+    if (filter.name) {
+      query.name = { $regex: filter.name, $options: 'i' };
+    }
+    const docs = await ProductModel.find(query).lean();
     return docs.map(toDTO);
   }
-  return inMemory.slice();
+
+  let items = inMemory.slice();
+  if (filter.name) {
+    const term = filter.name.toLowerCase();
+    items = items.filter(p => p.name && p.name.toLowerCase().includes(term));
+  }
+  return items;
 }
 
 async function getById(id) {
